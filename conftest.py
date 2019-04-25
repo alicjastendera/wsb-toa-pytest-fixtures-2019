@@ -18,6 +18,15 @@ def credentials(logger):
     logger.info(str(credentials))
     return creds
 
+@pytest.fixture(scope="session", params=["wrong_key.json", "wrong_token.json", "all_wrong.json"])
+def bad_credentials(request, logger):
+    """Returns key and token required to authenticate against API"""
+    logger.info("Preparing credentials")
+    with open(request.param) as file:
+        creds = json.load(file)
+    logger.info(str(request.param))
+    return creds
+
 
 @pytest.fixture(scope="session")
 def logger():
