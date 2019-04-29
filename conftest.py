@@ -5,9 +5,6 @@ import requests
 
 URL = "https://api.trello.com/1/"
 
-pytest_plugins = ["factory_helper"]
-# https://stackoverflow.com/questions/13641973/how-and-where-does-py-test-find-fixtures
-
 
 @pytest.fixture(scope="session")
 def credentials(logger):
@@ -16,15 +13,6 @@ def credentials(logger):
     with open("credentials.json") as file:
         creds = json.load(file)
     logger.info(str(credentials))
-    return creds
-
-@pytest.fixture(scope="session", params=["wrong_key.json", "wrong_token.json", "all_wrong.json"])
-def bad_credentials(request, logger):
-    """Returns key and token required to authenticate against API"""
-    logger.info("Preparing credentials")
-    with open(request.param) as file:
-        creds = json.load(file)
-    logger.info(str(request.param))
     return creds
 
 
