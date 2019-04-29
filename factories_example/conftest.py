@@ -2,7 +2,8 @@ import requests
 import pytest
 from http import HTTPStatus
 
-from conftest import URL
+# from conftest import URL
+URL = "https://api.trello.com/1/"
 
 
 @pytest.fixture()
