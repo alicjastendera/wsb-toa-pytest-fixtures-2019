@@ -18,8 +18,8 @@ querystring = {"name": "TEST_BOARD", "defaultLabels": "true", "default": "true",
 @pytest.fixture(scope="session")
 def crate_bad_credentials(logger):
     """Create and delete bad credentials files based on good credentials file"""
-    creds_kay = linecache.getline("credentials.json", 2)
-    creds_token = linecache.getline("credentials.json", 3)
+    creds_kay = linecache.getline("../credentials.json", 2)
+    creds_token = linecache.getline("../credentials.json", 3)
 
     open("wrong_token.json", "w").write("{\n" + creds_kay + '  "token":"Wrong_token"\n' + "}")
     logger.info("Creating credential file with bad TOKEN")
