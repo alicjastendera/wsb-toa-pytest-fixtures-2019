@@ -11,7 +11,7 @@ URL = "https://api.trello.com/1/"
 def credentials(logger):
     """Returns key and token required to authenticate against API"""
     logger.info("Preparing credentials")
-    with open("credentials.json") as file:
+    with open("..\credentials.json") as file:
         creds = json.load(file)
     logger.info(str(creds))
     return creds
