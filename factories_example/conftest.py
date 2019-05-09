@@ -2,7 +2,6 @@ import requests
 import pytest
 from http import HTTPStatus
 
-
 URL = "https://api.trello.com/1/"
 
 

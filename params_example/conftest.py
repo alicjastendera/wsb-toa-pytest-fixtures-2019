@@ -16,12 +16,12 @@ querystring = {"name": "TEST_BOARD", "defaultLabels": "true", "default": "true",
 
 
 @pytest.fixture(scope="session")
-def crate_bad_credentials(logger):
+def crate_bad_credentials_files(logger):
     """Create and delete bad credentials files based on good credentials file"""
-    creds_kay = linecache.getline("../credentials.json", 2)
+    creds_key = linecache.getline("../credentials.json", 2)
     creds_token = linecache.getline("../credentials.json", 3)
 
-    open("wrong_token.json", "w").write("{\n" + creds_kay + '  "token":"Wrong_token"\n' + "}")
+    open("wrong_token.json", "w").write("{\n" + creds_key + '  "token":"Wrong_token"\n' + "}")
     logger.info("Creating credential file with bad TOKEN")
     open("wrong_key.json", "w").write("{\n" + '  "key":"Wrong_key",\n' + creds_token + "}")
     logger.info("Creating credential file with bad KEY")
@@ -29,11 +29,11 @@ def crate_bad_credentials(logger):
     logger.info("Creating credential file with bad TOKEN and KEY")
     yield
     os.remove("wrong_token.json")
-    logger.info("Remove credential file with bad TOKEN")
+    logger.info("Removing credential file with bad TOKEN")
     os.remove("wrong_key.json")
-    logger.info("Remove credential file with bad KEY")
+    logger.info("Removing credential file with bad KEY")
     os.remove("all_wrong.json")
-    logger.info("Remove credential file with bad TOKEN and KEY")
+    logger.info("Removing credential file with bad TOKEN and KEY")
 
 
 @pytest.fixture(scope="session", params=["wrong_token.json", "wrong_key.json", "all_wrong.json"])
@@ -47,8 +47,8 @@ def bad_credentials(request, logger):
 
 
 @pytest.fixture()
-def create_board_bad(crate_bad_credentials, logger, bad_credentials):
-    """Try create board with bad credentials"""
+def create_board_bad(crate_bad_credentials_files, logger, bad_credentials):
+    """Try to create board with bad credentials"""
     querystring.update(bad_credentials)
     response = requests.request("POST", board_url, params=querystring)
     if response.status_code == HTTPStatus.OK:

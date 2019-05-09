@@ -25,23 +25,3 @@ def logger():
     return logger
 # https://stackoverflow.com/questions/4673373/logging-within-py-test-tests
 
-
-@pytest.fixture()
-def create_board(credentials, logger):
-    """Returns dictionary with all user's boards"""
-    logger.info("Creating board")
-    boards_url = URL + "boards"
-    querystring = {"name": "Shopping", "defaultLabels": "true", "defaultLists": "true", "keepFromSource": "none",
-                   "prefs_permissionLevel": "private", "prefs_voting": "disabled", "prefs_comments": "members",
-                   "prefs_invitations": "members", "prefs_selfJoin": "true", "prefs_cardCovers": "true",
-                   "prefs_background": "blue", "prefs_cardAging": "regular"}
-
-    querystring.update(credentials)
-    print(querystring)
-    response = requests.post(boards_url, params=querystring)
-
-    if response.status_code == HTTPStatus.OK:
-        logger.info("*********** Board created ***********")
-    else:
-        logger.error(response)
-    return response
