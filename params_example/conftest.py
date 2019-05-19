@@ -1,8 +1,11 @@
+from venv import logger
+
+import request
 import requests
 import pytest
 import json
-import linecache
-import os
+# import linecache
+# import os
 
 from http import HTTPStatus
 
@@ -15,46 +18,18 @@ querystring = {"name": "TEST_BOARD", "defaultLabels": "true", "default": "true",
                    "prefs_background": "pink", "prefs_cardAging": "regular"}
 
 
-@pytest.fixture(scope="session")
-def crate_bad_credentials_files(logger):
-    """Create and delete bad credentials files based on good credentials file"""
-    creds_key = linecache.getline("../credentials.json", 2)
-    creds_token = linecache.getline("../credentials.json", 3)
-
-    open("wrong_token.json", "w").write("{\n" + creds_key + '  "token":"Wrong_token"\n' + "}")
-    logger.info("Creating credential file with bad TOKEN")
-    open("wrong_key.json", "w").write("{\n" + '  "key":"Wrong_key",\n' + creds_token + "}")
-    logger.info("Creating credential file with bad KEY")
-    open("all_wrong.json", "w").write("{\n" + '  "key":"Wrong_key",\n' + '  "token":"Wrong_token"\n' + "}")
-    logger.info("Creating credential file with bad TOKEN and KEY")
-    yield
-    os.remove("wrong_token.json")
-    logger.info("Removing credential file with bad TOKEN")
-    os.remove("wrong_key.json")
-    logger.info("Removing credential file with bad KEY")
-    os.remove("all_wrong.json")
-    logger.info("Removing credential file with bad TOKEN and KEY")
-
-
-@pytest.fixture(scope="session", params=["wrong_token.json", "wrong_key.json", "all_wrong.json"])
-def bad_credentials(request, logger):
-    """Returns incorrect key and token"""
-    logger.info("Preparing incorrect credentials")
-    with open(request.param) as file:
-        creds = json.load(file)
-    logger.info("Loaded credentials: {}".format(creds))
-    return creds
-
-
-@pytest.fixture()
-def create_board_bad(crate_bad_credentials_files, logger, bad_credentials):
+@pytest.fixture(params=[{"key"}, {"token"}, {"key", "token"}])
+def create_board_bad(request, logger, credentials):
     """Try to create board with bad credentials"""
-    querystring.update(bad_credentials)
+    querystring.update(credentials)
+    for item in request.param:
+        querystring[item] = "bad credentials data"
     response = requests.request("POST", board_url, params=querystring)
     if response.status_code == HTTPStatus.OK:
         logger.info("****** Good credentials; TEST_BOARD created ******")
     else:
         logger.info("****** Bad credentials; can't login and create TEST_BOARD ******")
+        logger.info(str(querystring))
     return response
 
 
@@ -65,6 +40,7 @@ def create_board_good(logger, credentials):
     response = requests.request("POST", board_url, params=querystring)
     if response.status_code == HTTPStatus.OK:
         logger.info("****** Good credentials; TEST_BOARD created ******")
+        logger.info(str(querystring))
     else:
         logger.info("****** Bad credentials; can't login and create TEST_BOARD ******")
     yield response
