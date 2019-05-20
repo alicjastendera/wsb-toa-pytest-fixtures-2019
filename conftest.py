@@ -1,8 +1,10 @@
 import pytest
 import json
+import os
 import logging
 import requests
 from http import HTTPStatus
+from helper import get_users_boards
 
 URL = "https://api.trello.com/1/"
 
@@ -11,7 +13,8 @@ URL = "https://api.trello.com/1/"
 def credentials(logger):
     """Returns key and token required to authenticate against API"""
     logger.info("Preparing credentials")
-    with open("..\credentials.json") as file:
+    conftest_path = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(conftest_path, "credentials.json")) as file:
         creds = json.load(file)
     logger.info(str(creds))
     return creds
@@ -49,3 +52,12 @@ def create_empty_board(credentials, logger):
     requests.delete(boards_url + "/" + board_id, params=credentials)
 
 
+@pytest.fixture(autouse=True, scope="function")
+def remove_boards_before_test(logger, credentials):
+    response = get_users_boards(credentials)
+    open_boards = [board["id"] for board in response.json() if board["closed"] is False]
+    if len(open_boards) !=0:
+        boards_url = URL + "boards"
+        for id in open_boards:
+            logger.info("Removing old boards before test")
+            requests.delete(boards_url + "/" + id, params=credentials)

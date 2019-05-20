@@ -1,11 +1,5 @@
-from venv import logger
-
-import request
 import requests
 import pytest
-import json
-# import linecache
-# import os
 
 from http import HTTPStatus
 

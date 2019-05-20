@@ -6,15 +6,6 @@ URL = "https://api.trello.com/1/"
 
 
 @pytest.fixture()
-def get_lists_ids_from_board(credentials):
-    def _get_lists_ids_from_board(board_id):
-        lists_url = URL + "/boards/{}/lists".format(board_id)
-        response = requests.get(lists_url, params=credentials)
-        return response.json()
-    return _get_lists_ids_from_board
-
-
-@pytest.fixture()
 def create_board_factory(logger, credentials):
     board_ids = []
     boards_url = URL + "boards"
@@ -55,7 +46,7 @@ def create_list_factory(logger, credentials):
             logger.error(response)
         list_id = response.json()["id"]
         lists_ids.append(list_id)
-        return list_id
+        return response
 
     yield _create_list_factory
     for id in lists_ids:
@@ -66,24 +57,7 @@ def create_list_factory(logger, credentials):
 
 
 @pytest.fixture()
-def create_card_factory(logger, credentials):
-    def _create_card_factory(card_name, id_list, label):
-        """Creates card on a given list"""
-        card_url = URL + "cards"
-        querystring = {"name": card_name, "idList": id_list, "keepFromSource": "all", "idLabels": label}
-        querystring.update(credentials)
-        response = requests.post(card_url, params=querystring)
-        if response.status_code == HTTPStatus.OK:
-            logger.info('"{}" card created'.format(card_name))
-        else:
-            logger.error(response)
-
-        return response.json()
-    return _create_card_factory
-
-
-@pytest.fixture()
-def create_label_on_a_board(logger, credentials):
+def create_label_on_a_board_factory(logger, credentials):
     def _create_label_on_a_board(label_name, label_color, board_id):
         """Creates label on a given board"""
         label_url = URL + "labels"
@@ -95,5 +69,5 @@ def create_label_on_a_board(logger, credentials):
         else:
             logger.error(response)
 
-        return response.json()
+        return response
     return _create_label_on_a_board
