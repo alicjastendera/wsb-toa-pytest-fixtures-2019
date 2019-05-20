@@ -4,7 +4,9 @@ import time
 from http import HTTPStatus
 
 URL = "https://api.trello.com/1/"
-URL_AVWX = "https://avwx.rest/api/metar/EPGD?options=&format=json&onfail=cache" # Weather observation for the Gdańsk airport
+URL_AVWX = "https://avwx.rest/api/metar/{}?options=&format=json&onfail=cache" # Weather observation for airports
+
+"Fixtures as Function arguments"
 
 
 @pytest.fixture()
@@ -35,24 +37,26 @@ def create_list(credentials, logger, create_board, get_aviation_weather):
     querystring.update(credentials)
     response = requests.post(list_url, params=querystring)
     # Time sleep due to the possibility of viewing in TRELLO UI a list with weather information "metar"
-    time.sleep(5)
+    time.sleep(4)
     return response
 
 
-@pytest.fixture()
-def get_aviation_weather(logger):
+"Automatic grouping of tests by fixture instances"
+
+
+@pytest.fixture(scope="module", params=["EPGD","EPWA"])
+def get_aviation_weather(logger, request):
     logger.info("Download metar info")
-    metar_url = URL_AVWX
+    metar_url = URL_AVWX.format(request.param)
     body = {}
     # Aeronautical weather information for the airport is called "metar" that is coded information easily interpretable
-    # by pilots and updated every 30 min. For the purposes of this test, the "metar" is collected from the Rębiechowo
-    # Airport (abbreviated ICAO: EPGD)
+    # by pilots and updated every 30 min. For the purposes of this test, the "metar" is collected from the Gdansk Lech
+    # Walesa and Warsaw Chopin Airports
+    # Airport (abbreviated ICAO: EPGD, EPWA)
     response = requests.get(metar_url, params=body)
-    logger.info("metar for Gdańsk - Rębiechowo:")
+    logger.info(f"metar for {request.param}")
     logger.info(response.text)
     metar_item = response.json()["raw"]
     if response.status_code == HTTPStatus.OK:
         logger.info(metar_item)
-    return response, metar_item
-
-
+    return response, metar_item, request.param
