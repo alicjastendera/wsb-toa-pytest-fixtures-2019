@@ -7,9 +7,9 @@ URL = "https://api.trello.com/1/"
 
 board_url = URL + "boards"
 querystring = {"name": "TEST_BOARD", "defaultLabels": "true", "default": "true", "keepFromSource": "none",
-                   "prefs_permissionLevel": "private", "prefs_voting": "disabled", "prefs_comments": "members",
-                   "prefs_invitations": "members", "prefs_selfJoin": "true", "prefs_cardCovers": "true",
-                   "prefs_background": "pink", "prefs_cardAging": "regular"}
+               "prefs_permissionLevel": "private", "prefs_voting": "disabled", "prefs_comments": "members",
+               "prefs_invitations": "members", "prefs_selfJoin": "true", "prefs_cardCovers": "true",
+               "prefs_background": "pink", "prefs_cardAging": "regular"}
 
 
 @pytest.fixture(params=[{"key"}, {"token"}, {"key", "token"}])
