@@ -34,7 +34,7 @@ def create_empty_board(credentials, logger):
     """Creates empty board"""
     logger.info("Creating empty board")
     boards_url = URL + "boards"
-    querystring = {"name": "Not overriden root fixture used", "defaultLabels": "true", "defaultLists": "true",
+    querystring = {"name": "Test board", "defaultLabels": "true", "defaultLists": "true",
                    "keepFromSource": "none", "prefs_permissionLevel": "private", "prefs_voting": "disabled",
                    "prefs_comments": "members", "prefs_invitations": "members", "prefs_selfJoin": "true",
                    "prefs_cardCovers": "true", "prefs_background": "blue", "prefs_cardAging": "regular"}
@@ -53,29 +53,26 @@ def create_empty_board(credentials, logger):
 
 
 @pytest.fixture()
-def create_empty_board_with_color_factory(credentials, logger):
-    """Creates empty board with given bcg color"""
+def create_empty_board_with_bcg_color(request, credentials, logger):
+    """Creates empty board"""
     logger.info("Creating empty board")
-    board_ids = []
     boards_url = URL + "boards"
+    querystring = {"name": "Test board", "defaultLabels": "true", "defaultLists": "true",
+                   "keepFromSource": "none", "prefs_permissionLevel": "private", "prefs_voting": "disabled",
+                   "prefs_comments": "members", "prefs_invitations": "members", "prefs_selfJoin": "true",
+                   "prefs_cardCovers": "true", "prefs_background": request.param, "prefs_cardAging": "regular"}
 
-    def _create_empty_board_with_color_factory(prefs_background):
-        querystring = {"name": "Overriden fixture with different params", "defaultLabels": "true", "defaultLists": "true",
-                       "keepFromSource": "none", "prefs_permissionLevel": "private", "prefs_voting": "disabled",
-                       "prefs_comments": "members", "prefs_invitations": "admins", "prefs_selfJoin": "true",
-                       "prefs_background": prefs_background, "prefs_cardAging": "regular"}
+    querystring.update(credentials)
+    response = requests.post(boards_url, params=querystring)
 
-        querystring.update(credentials)
-        response = requests.post(boards_url, params=querystring)
-        board_id = response.json()["id"]
-        board_ids.append(board_id)
-        return response
+    if response.status_code == HTTPStatus.OK:
+        logger.info("*********** Blue board created ***********")
+    else:
+        logger.error(response)
 
-    yield _create_empty_board_with_color_factory
-
-    for id in board_ids:
-        logger.info("Removing '{}' board after test".format(id))
-        requests.delete(boards_url + "/" + id, params=credentials)
+    yield response, request.param
+    board_id = response.json()["id"]
+    requests.delete(boards_url + "/" + board_id, params=credentials)
 
 
 @pytest.fixture(autouse=True, scope="function")

@@ -1,5 +1,8 @@
 from helper import get_users_boards
 from http import HTTPStatus
+import pytest
+import requests
+from conftest import URL
 
 
 class TestBoards:
@@ -15,12 +18,23 @@ class TestBoards:
 
         assert len(open_boards) == 3
 
-    def test_create_board_with_green_background(self, logger, create_empty_board_with_color_factory):
-        result = create_empty_board_with_color_factory("green")
+    @pytest.mark.parametrize("create_empty_board_with_bcg_color", ["green", "blue", "orange"], indirect=True)
+    def test_create_board_with_given_background(self, create_empty_board_with_bcg_color):
+        result, color = create_empty_board_with_bcg_color
         assert result.status_code == HTTPStatus.OK
-        assert result.json()["prefs"]["background"] == "green"
+        assert result.json()["prefs"]["background"] == color
 
-    def test_create_board_with_orange_background(self, logger, create_empty_board_with_color_factory):
-        result = create_empty_board_with_color_factory("orange")
+    def test_rename_board(self, create_board_factory, credentials):
+        board_id = create_board_factory("Name to be changed")
+        new_name = "New name"
+
+        board_url = URL + "boards/" + board_id
+        querystring = {"name": new_name}
+        querystring.update(credentials)
+        result = requests.put(board_url, params=querystring)
         assert result.status_code == HTTPStatus.OK
-        assert result.json()["prefs"]["background"] == "orange"
+
+        result = get_users_boards(credentials)
+        boards = [board["name"] for board in result.json()]
+        assert len(boards) == 1
+        assert boards[0] == new_name
