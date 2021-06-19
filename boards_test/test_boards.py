@@ -38,3 +38,14 @@ class TestBoards:
         boards = [board["name"] for board in result.json()]
         assert len(boards) == 1
         assert boards[0] == new_name
+
+    def test_close_board(self, create_empty_board, credentials):
+        board_id = create_empty_board.json()["id"]
+        board_url = URL + "boards/" + board_id
+
+        querystring = {"closed": "true"}
+        querystring.update(credentials)
+        result = requests.put(board_url, params=querystring)
+
+        assert result.status_code == HTTPStatus.OK
+        assert result.json()["closed"] is True
