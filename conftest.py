@@ -49,6 +49,7 @@ def create_empty_board(credentials, logger):
 
     yield response
     board_id = response.json()["id"]
+    logger.info("Removing '{}' board after test".format(board_id))
     requests.delete(boards_url + "/" + board_id, params=credentials)
 
 

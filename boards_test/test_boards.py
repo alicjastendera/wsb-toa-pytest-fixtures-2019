@@ -49,3 +49,35 @@ class TestBoards:
 
         assert result.status_code == HTTPStatus.OK
         assert result.json()["closed"] is True
+
+    def test_delete_empty_board(self, create_empty_board, credentials):
+        board_id = create_empty_board.json()["id"]
+        board_url = URL + "boards/" + board_id
+
+        querystring = {}
+        querystring.update(credentials)
+        result = requests.delete(board_url, params=querystring)
+
+        assert result.status_code == HTTPStatus.OK
+        assert get_users_boards(credentials).json() == []
+
+    def test_delete_non_empty_board(self, create_empty_board, create_list_factory, credentials):
+        board_id = create_empty_board.json()["id"]
+        board_url = URL + "boards/" + board_id
+        querystring = {}
+        querystring.update(credentials)
+
+        assert (create_list_factory(board_id, "Test List")).status_code == HTTPStatus.OK
+        assert (requests.delete(board_url, params=querystring)).status_code == HTTPStatus.OK
+        assert get_users_boards(credentials).json() == []
+
+    def test_change_boards_bcg(self, credentials, create_empty_board):
+        board_id = create_empty_board.json()["id"]
+        board_url = URL + "boards/" + board_id
+
+        assert create_empty_board.json()["prefs"]["background"] == "blue"
+        querystring = {"prefs/background": "pink"}
+        querystring.update(credentials)
+
+        response = requests.put(board_url, params=querystring)
+        assert response.json()["prefs"]["background"] == "pink"
