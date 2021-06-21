@@ -81,3 +81,27 @@ class TestBoards:
 
         response = requests.put(board_url, params=querystring)
         assert response.json()["prefs"]["background"] == "pink"
+
+    def test_add_star_to_board(self, create_empty_board, credentials, logger):
+        board_id = create_empty_board.json()["id"]
+        member_url = URL + "members/me/boardStars"
+        board_url = URL + "boards/" + board_id + "/boardStars"
+
+        querystring = {'idBoard': board_id, 'pos': 'top'}
+        querystring.update(credentials)
+
+        assert (requests.post(member_url, params=querystring)).status_code == HTTPStatus.OK
+        assert board_id == (requests.get(board_url, params=querystring).json())[0]["idBoard"]
+
+    @pytest.mark.parametrize('desc_len', [40, 14203, 14204, 16384])
+    def test_add_description_to_board(self, create_empty_board, credentials, desc_len):
+        from random import choice
+        from string import ascii_lowercase
+        board_id = create_empty_board.json()["id"]
+        board_url = URL + "boards/" + board_id
+        test_description = ''.join([choice(ascii_lowercase) for _ in range(desc_len)])
+
+        querystring = {"desc": test_description}
+        querystring.update(credentials)
+        assert (requests.put(board_url, params=querystring)).status_code == HTTPStatus.OK
+        assert len((requests.get(board_url, params=querystring)).json()["desc"]) == desc_len
