@@ -82,7 +82,7 @@ class TestBoards:
         response = requests.put(board_url, params=querystring)
         assert response.json()["prefs"]["background"] == "pink"
 
-    def test_add_star_to_board(self, create_empty_board, credentials, logger):
+    def test_add_star_to_board(self, create_empty_board, credentials):
         board_id = create_empty_board.json()["id"]
         member_url = URL + "members/me/boardStars"
         board_url = URL + "boards/" + board_id + "/boardStars"

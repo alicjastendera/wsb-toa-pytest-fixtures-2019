@@ -34,7 +34,7 @@ def create_empty_board(credentials, logger):
     """Creates empty board"""
     logger.info("Creating empty board")
     boards_url = URL + "boards"
-    querystring = {"name": "Test board", "defaultLabels": "true", "defaultLists": "true",
+    querystring = {"name": "Test board", "defaultLabels": "true", "defaultLists": "false",
                    "keepFromSource": "none", "prefs_permissionLevel": "private", "prefs_voting": "disabled",
                    "prefs_comments": "members", "prefs_invitations": "members", "prefs_selfJoin": "true",
                    "prefs_cardCovers": "true", "prefs_background": "blue", "prefs_cardAging": "regular"}
@@ -58,7 +58,7 @@ def create_empty_board_with_bcg_color(request, credentials, logger):
     """Creates empty board"""
     logger.info("Creating empty board")
     boards_url = URL + "boards"
-    querystring = {"name": "Test board", "defaultLabels": "true", "defaultLists": "true",
+    querystring = {"name": "Test board", "defaultLabels": "true", "defaultLists": "false",
                    "keepFromSource": "none", "prefs_permissionLevel": "private", "prefs_voting": "disabled",
                    "prefs_comments": "members", "prefs_invitations": "members", "prefs_selfJoin": "true",
                    "prefs_cardCovers": "true", "prefs_background": request.param, "prefs_cardAging": "regular"}
@@ -67,7 +67,7 @@ def create_empty_board_with_bcg_color(request, credentials, logger):
     response = requests.post(boards_url, params=querystring)
 
     if response.status_code == HTTPStatus.OK:
-        logger.info("*********** Blue board created ***********")
+        logger.info(f"*********** {request.param} board created ***********")
     else:
         logger.error(response)
 
@@ -133,7 +133,7 @@ def create_list_factory(logger, credentials):
     yield _create_list_factory
     for id in lists_ids:
         logger.info("Removing '{}' list after test".format(id))
-        requests.put(list_url + "/" + id, params=credentials)
+        requests.delete(list_url + "/" + id, params=credentials)
 
     return _create_list_factory
 
@@ -153,3 +153,33 @@ def create_label_on_a_board_factory(logger, credentials):
 
         return response
     return _create_label_on_a_board
+
+
+@pytest.fixture()
+def prepare_list_on_board(create_empty_board, create_list_factory, logger):
+    logger.info("Preparing board with one empty list.")
+    return create_list_factory(create_empty_board.json()["id"], "Test list")
+
+
+@pytest.fixture()
+def create_card_and_list_on_board(prepare_list_on_board, credentials, logger):
+    logger.info("Creating card on list: \"{}\" with list_id {} ".format(
+                prepare_list_on_board.json()["name"], prepare_list_on_board.json()["id"]))
+    card_url = URL + "cards"
+    cards_ids = []
+    card_name = "Magic card"
+    querystring = {"idList": prepare_list_on_board.json()["id"], "name": card_name}  # TODO change to param
+    querystring.update(credentials)
+    response = requests.post(card_url, params=querystring)
+
+    if response.status_code == HTTPStatus.OK:
+        logger.info('"{}" card created'.format(card_name))
+    else:
+        logger.error(response)
+
+    cards_ids.append(response.json()["id"])
+    yield response
+
+    for id in cards_ids:
+        logger.info("Removing '{}' card after test".format(id))
+        requests.delete(card_url + "/" + id, params=credentials)
