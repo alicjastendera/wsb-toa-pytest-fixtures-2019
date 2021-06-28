@@ -135,8 +135,6 @@ def create_list_factory(logger, credentials):
         logger.info("Removing '{}' list after test".format(id))
         requests.delete(list_url + "/" + id, params=credentials)
 
-    return _create_list_factory
-
 
 @pytest.fixture()
 def create_label_on_a_board_factory(logger, credentials):
@@ -157,12 +155,14 @@ def create_label_on_a_board_factory(logger, credentials):
 
 @pytest.fixture()
 def prepare_list_on_board(create_empty_board, create_list_factory, logger):
+    """Prepares board "Test board" with one empty list "Test list". Returns whole response"""
     logger.info("Preparing board with one empty list.")
     return create_list_factory(create_empty_board.json()["id"], "Test list")
 
 
 @pytest.fixture()
 def create_card_and_list_on_board(prepare_list_on_board, credentials, logger):
+    """Prepares board with one list on it and one card "Magic card" on it"""
     logger.info("Creating card on list: \"{}\" with list_id {} ".format(
                 prepare_list_on_board.json()["name"], prepare_list_on_board.json()["id"]))
     card_url = URL + "cards"
@@ -181,5 +181,29 @@ def create_card_and_list_on_board(prepare_list_on_board, credentials, logger):
     yield response
 
     for id in cards_ids:
+        logger.info("Removing '{}' card after test".format(id))
+        requests.delete(card_url + "/" + id, params=credentials)
+
+
+@pytest.fixture()
+def create_card_factory(logger, credentials):
+    card_url = URL + "cards"
+    card_ids = []
+
+    def _create_card_factory(list_id, card_name, pos="bottom"):
+        """Creates card on a given list with given name, position and returns its response"""
+        querystring = {"name": card_name, "idList": list_id, "pos": pos}
+        querystring.update(credentials)
+        response = requests.post(card_url, params=querystring)
+        if response.status_code == HTTPStatus.OK:
+            logger.info('"{}" card created on list_id: {}'.format(card_name, list_id))
+        else:
+            logger.error(response)
+        card_id = response.json()["id"]
+        card_ids.append(card_id)
+        return response
+
+    yield _create_card_factory
+    for id in card_ids:
         logger.info("Removing '{}' card after test".format(id))
         requests.delete(card_url + "/" + id, params=credentials)
