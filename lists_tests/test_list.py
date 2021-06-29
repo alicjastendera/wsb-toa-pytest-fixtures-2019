@@ -3,7 +3,7 @@ import requests
 from conftest import URL
 
 
-class Testists:
+class TestLists:
 
     def test_create_list_on_board(self, prepare_list_on_board):
         assert prepare_list_on_board.status_code == HTTPStatus.OK
