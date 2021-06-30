@@ -54,8 +54,7 @@ class TestBoards:
         board_id = create_empty_board.json()["id"]
         board_url = URL + "boards/" + board_id
 
-        querystring = {}
-        querystring.update(credentials)
+        querystring = credentials
         result = requests.delete(board_url, params=querystring)
 
         assert result.status_code == HTTPStatus.OK
@@ -64,8 +63,7 @@ class TestBoards:
     def test_delete_non_empty_board(self, create_empty_board, create_list_factory, credentials):
         board_id = create_empty_board.json()["id"]
         board_url = URL + "boards/" + board_id
-        querystring = {}
-        querystring.update(credentials)
+        querystring = credentials
 
         assert (create_list_factory(board_id, "Test List")).status_code == HTTPStatus.OK
         assert (requests.delete(board_url, params=querystring)).status_code == HTTPStatus.OK

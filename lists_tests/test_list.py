@@ -44,8 +44,7 @@ class TestLists:
         create_card_factory(first_list_id, "Fourth")
         create_card_factory(second_list_id, "Fifth")
 
-        querystring = {}
-        querystring.update(credentials)
+        querystring = credentials
 
         response = requests.get(list_url + first_list_id + "/cards", querystring)  # get all cards from first list
         assert len(response.json()) == 4
