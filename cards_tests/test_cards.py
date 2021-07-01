@@ -44,8 +44,34 @@ class TestCards:
     def test_add_checklist_to_card(self):
         pass
 
-    def test_add_delete_sticker_to_card(self):
-        pass
+    def test_add_sticker_to_card(self, credentials, create_card_and_list_on_board, logger):
+        card_id = create_card_and_list_on_board.json()["id"]
+        querystring = {"image": "heart", 'top': '50', 'left': '50', 'zIndex': "1"}
+        querystring.update(credentials)
+        assert (requests.post(URL + "cards/" + card_id + "/stickers", params=querystring)).status_code == HTTPStatus.OK
+
+        querystring.update({"image": "thumbsup", 'top': '10', 'left': '20', 'zIndex': "2"})
+        assert (requests.post(URL + "cards/" + card_id + "/stickers", params=querystring)).status_code == HTTPStatus.OK
+
+        response = requests.get(URL + "cards/" + card_id + "/stickers", querystring)
+        stickers = [item["image"] for item in response.json()]
+        assert len(stickers) == 2
 
     def test_copy_checklist_from_card_to_card(self):
         pass
+
+    def test_add__and_remove_label_from_card(self, credentials, create_label_on_a_board_factory,
+                                             create_card_and_list_on_board):
+        card_id = create_card_and_list_on_board.json()["id"]
+        board_id = create_card_and_list_on_board.json()["idBoard"]
+        label_id = (create_label_on_a_board_factory("My label", "green", board_id)).json()["id"]
+
+        querystring = {"value": label_id}
+        querystring.update(credentials)
+        requests.post(URL + "cards/" + card_id + "/idLabels", querystring)
+        response = requests.get(URL + "cards/" + card_id, querystring)
+        assert response.json()["idLabels"][0] == label_id
+
+        requests.delete(URL + "cards/" + card_id + "/idLabels/" + label_id, params=querystring)
+        response = requests.get(URL + "cards/" + card_id, querystring)
+        assert len(response.json()["idLabels"]) == 0
