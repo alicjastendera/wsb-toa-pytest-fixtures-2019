@@ -207,3 +207,18 @@ def create_card_factory(logger, credentials):
     for id in card_ids:
         logger.info("Removing '{}' card after test".format(id))
         requests.delete(card_url + "/" + id, params=credentials)
+
+
+@pytest.fixture()
+def create_checkitem_on_checklist_factory(logger, credentials):
+    def _create_checkitem_on_checklist_factory(checklist_id, checkitem_name, pos="bottom"):
+        querystring = {"name": checkitem_name, "pos": pos}
+        querystring.update(credentials)
+        response = requests.post(URL + "checklists/" + checklist_id + "/checkItems", params=querystring)
+
+        if response.status_code == HTTPStatus.OK:
+            logger.info('"{}" checkitem created on checklist_id: {}'.format(checkitem_name, checklist_id))
+        else:
+            logger.error(response)
+        return response
+    yield _create_checkitem_on_checklist_factory
